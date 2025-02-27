@@ -21,11 +21,10 @@ build = {
     type = "builtin",
     modules = {
         ["lumo"] = "src/lumo.lua",
-        ["lumo.db"] = "src/db.lua",
-        ["lumo.model"] = "src/model.lua",
-        ["lumo.query_builder"] = "src/query_builder.lua",
-        ["lumo.relationships"] = "src/relationships.lua",
-        ["lumo.migrations"] = "src/migrations.lua",
-        ["lumo.seeder"] = "src/seeder.lua",
+        ["lumo.db"] = "src/lumo/db.lua",
+        ["lumo.model"] = "src/lumo/model.lua",
+        ["lumo.query_builder"] = "src/lumo/query_builder.lua",
+        ["lumo.relationships"] = "src/lumo/relationships.lua",
+        ["lumo.migrations"] = "src/lumo/migrations.lua",
     }
 }
