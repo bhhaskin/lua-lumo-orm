@@ -1,8 +1,9 @@
 package = "lumo-orm"
 version = "0.1-0"
 source = {
-    url = "git+https://github.com/bhhaskin/lua-lumo-orm.git",
-    branch = "main"
+   url = "https://github.com/bhhaskin/lua-lumo-orm/archive/refs/tags/v0.1-0.tar.gz",
+    md5 = "bcadb1b22792463f7d77158a67a2af2f",
+   dir = "lua-lumo-orm-0.1-0"
 }
 description = {
     summary = "A lightweight Active Record ORM for Lua with SQLite support",
@@ -12,6 +13,7 @@ description = {
     ]],
     license = "MIT",
     homepage = "https://github.com/bhhaskin/lua-lumo-orm"
+    maintainer = "Bryan Haskin <bhhaskin@bitsofsimplicity.com>"
 }
 dependencies = {
     "lua >= 5.1",
