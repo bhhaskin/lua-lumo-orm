@@ -1,0 +1,15 @@
+FROM openresty/openresty:alpine-fat AS builder
+
+RUN apk add --no-cache \
+    sqlite
+
+RUN luarocks install busted && \
+    luarocks install lsqlite3complete
+
+WORKDIR /app
+
+COPY . /app
+
+ENV LUA_PATH="/app/src/?.lua;/app/src/?/init.lua;/usr/local/openresty/lualib/?.lua;;"
+
+CMD ["busted", "spec"]
