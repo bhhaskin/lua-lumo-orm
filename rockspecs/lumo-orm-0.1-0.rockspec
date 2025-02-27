@@ -12,7 +12,7 @@ description = {
         It includes migrations, a query builder, relationships, and Active Record pattern support.
     ]],
     license = "MIT",
-    homepage = "https://github.com/bhhaskin/lua-lumo-orm"
+    homepage = "https://github.com/bhhaskin/lua-lumo-orm",
     maintainer = "Bryan Haskin <bhhaskin@bitsofsimplicity.com>"
 }
 dependencies = {
