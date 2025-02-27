@@ -79,10 +79,6 @@ function Model:delete()
     return success
 end
 
-
-
-
-
 -- **Use Relationships from `relationships.lua`**
 Model.hasOne = Relationships.hasOne
 Model.hasMany = Relationships.hasMany
