@@ -4,7 +4,7 @@ local QueryBuilder = require("lumo.query_builder")
 local Migrations = require("lumo.migrations")
 
 local Lumo = {
-   _VERSION = '0.1-0',
+   _VERSION = '1.0-0',
    db = nil, -- Store database connection
    _db_path = nil -- Store database path for reconnecting
 }
