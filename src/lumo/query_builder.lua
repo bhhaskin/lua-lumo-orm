@@ -13,6 +13,8 @@ function QueryBuilder:new(table)
     instance.table = table
     instance.conditions = {}
     instance.params = {}
+    instance.order_by = nil
+    instance.limit_count = nil
     return instance
 end
 
@@ -23,7 +25,19 @@ function QueryBuilder:where(field, operator, value)
     return self
 end
 
--- Execute the query
+-- Add ORDER BY clause
+function QueryBuilder:orderBy(field, direction)
+    self.order_by = "ORDER BY " .. field .. " " .. (direction or "ASC")
+    return self
+end
+
+-- Add LIMIT clause
+function QueryBuilder:limit(count)
+    self.limit_count = "LIMIT " .. count
+    return self
+end
+
+-- Execute the SELECT query
 function QueryBuilder:get()
     local sql = "SELECT * FROM " .. self.table
 
@@ -31,7 +45,22 @@ function QueryBuilder:get()
         sql = sql .. " WHERE " .. table.concat(self.conditions, " AND ")
     end
 
+    if self.order_by then
+        sql = sql .. " " .. self.order_by
+    end
+
+    if self.limit_count then
+        sql = sql .. " " .. self.limit_count
+    end
+
     return self.db:query(sql, table.unpack(self.params))
+end
+
+-- Get the first record
+function QueryBuilder:first()
+    self:limit(1)
+    local results = self:get()
+    return results and results[1] or nil
 end
 
 -- Insert a new record
@@ -52,11 +81,18 @@ function QueryBuilder:insert(data)
     )
 
     local success = self.db:execute(sql, table.unpack(values))
-    return success and self.db:lastInsertId() or nil
+    if success then
+        return self.db:lastInsertId()
+    end
+    return nil
 end
 
 -- Update existing records and return success
 function QueryBuilder:update(data)
+    if #self.conditions == 0 then
+        error("UPDATE queries must have a WHERE condition to prevent full table updates.")
+    end
+
     local updates, values = {}, {}
 
     for column, value in pairs(data) do
@@ -78,6 +114,10 @@ end
 
 -- Delete records and return success
 function QueryBuilder:delete()
+    if #self.conditions == 0 then
+        error("DELETE queries must have a WHERE condition to prevent full table deletion.")
+    end
+
     local sql = "DELETE FROM " .. self.table
 
     if #self.conditions > 0 then
@@ -86,17 +126,5 @@ function QueryBuilder:delete()
 
     return self.db:execute(sql, table.unpack(self.params))
 end
-
--- Get first record from query
-function QueryBuilder:first()
-    local results = self:get()
-    return results and results[1] or nil
-end
-
-function QueryBuilder:limit(count)
-    self.limit_count = "LIMIT " .. count
-    return self
-end
-
 
 return QueryBuilder

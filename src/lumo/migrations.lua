@@ -36,7 +36,11 @@ function Migrations:apply(name, up)
     end
 
     -- Run the `up` migration (table creation/modification)
-    self.db:execute(up)
+    local success, err = self.db:execute(up)
+    if not success then
+        print("[Migration Error] Failed to apply migration:", name, "Error:", err)
+        return false
+    end
 
     -- Record migration as applied
     QueryBuilder:new("migrations"):insert({ name = name })
@@ -52,7 +56,11 @@ function Migrations:rollback(name, down)
     end
 
     -- Run the `down` migration (rollback)
-    self.db:execute(down)
+    local success, err = self.db:execute(down)
+    if not success then
+        print("[Migration Error] Failed to rollback migration:", name, "Error:", err)
+        return false
+    end
 
     -- Remove the migration record
     QueryBuilder:new("migrations"):where("name", "=", name):delete()
@@ -63,28 +71,36 @@ end
 -- Apply all pending migrations
 function Migrations:migrateUp(migrations)
     for _, migration in ipairs(migrations) do
-        self:apply(migration.name, migration.up)
+        local success = self:apply(migration.name, migration.up)
+        if not success then
+            print("[Migration Error] Stopping migration process due to failure.")
+            break
+        end
     end
 end
 
 -- Rollback all applied migrations
 function Migrations:migrateDown(migrations)
     for i = #migrations, 1, -1 do
-        self:rollback(migrations[i].name, migrations[i].down)
+        local success = self:rollback(migrations[i].name, migrations[i].down)
+        if not success then
+            print("[Migration Error] Stopping rollback due to failure.")
+            break
+        end
     end
 end
 
--- Create pivot table if not exists
-function Migrations:createPivotTable(name, column1, column2)
+-- Create pivot table with configurable foreign keys
+function Migrations:createPivotTable(name, column1, refTable1, column2, refTable2)
     local sql = string.format([[
         CREATE TABLE IF NOT EXISTS %s (
             %s INTEGER NOT NULL,
             %s INTEGER NOT NULL,
             PRIMARY KEY (%s, %s),
-            FOREIGN KEY (%s) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY (%s) REFERENCES roles(id) ON DELETE CASCADE
+            FOREIGN KEY (%s) REFERENCES %s(id) ON DELETE CASCADE,
+            FOREIGN KEY (%s) REFERENCES %s(id) ON DELETE CASCADE
         );
-    ]], name, column1, column2, column1, column2, column1, column2)
+    ]], name, column1, column2, column1, column2, column1, refTable1, column2, refTable2)
 
     self.db:execute(sql)
 end
