@@ -1,36 +1,75 @@
 local Collection = require("lumo.collection")
 
 -- Sample data
-local users = Collection:new({
-    { id = 1, name = "Alice", email = "alice@example.com" },
-    { id = 2, name = "Bob", email = "bob@example.com" },
-    { id = 3, name = "Charlie", email = "charlie@example.com" },
-    { id = 4, name = "Alice", email = "alice2@example.com" }
-})
+local users = {
+    { id = 1, name = "Alice", age = 28 },
+    { id = 2, name = "Bob", age = 35 },
+    { id = 3, name = "Charlie", age = 24 },
+    { id = 4, name = "David", age = 30 }
+}
 
-print("Total users:", users:count())
+-- Create a collection
+local userCollection = Collection:new(users)
 
--- Filtering collection: Get users with the name "Alice"
-local alices = users:filter(function(user)
-    return user.name == "Alice"
-end)
-
-print("Users named Alice:", alices:count())
-for _, user in ipairs(alices:all()) do
-    print(user.id, user.name, user.email)
+print("---- Original Collection ----")
+for _, user in ipairs(userCollection:toArray()) do
+    print(user.id, user.name, user.age)
 end
 
--- Plucking emails
-local emails = users:pluck("email")
-print("All emails:", table.concat(emails, ", "))
-
--- Mapping collection: Convert names to uppercase
-local uppercased = users:map(function(user)
-    user.name = string.upper(user.name)
+-- Map: Add a new property
+local updatedUsers = userCollection:map(function(user)
+    user.isAdult = user.age >= 18
     return user
 end)
 
-print("Uppercased names:")
-for _, user in ipairs(uppercased:all()) do
-    print(user.id, user.name, user.email)
+print("\n---- Users with isAdult field ----")
+for _, user in ipairs(updatedUsers:toArray()) do
+    print(user.id, user.name, user.age, "isAdult:", user.isAdult)
 end
+
+-- Filter: Get users older than 25
+local filteredUsers = userCollection:filter(function(user)
+    return user.age > 25
+end)
+
+print("\n---- Users older than 25 ----")
+for _, user in ipairs(filteredUsers:toArray()) do
+    print(user.id, user.name, user.age)
+end
+
+-- First and Last
+print("\nFirst user:", userCollection:first().name)
+print("Last user:", userCollection:last().name)
+
+-- Pluck: Extract names
+local names = userCollection:pluck("name")
+print("\n---- User Names ----")
+for _, name in ipairs(names) do
+    print(name)
+end
+
+-- Sorting by age
+local sortedUsers = userCollection:sortBy("age")
+print("\n---- Users Sorted by Age ----")
+for _, user in ipairs(sortedUsers:toArray()) do
+    print(user.id, user.name, user.age)
+end
+
+-- Reverse
+local reversedUsers = userCollection:reverse()
+print("\n---- Users in Reverse Order ----")
+for _, user in ipairs(reversedUsers:toArray()) do
+    print(user.id, user.name, user.age)
+end
+
+-- Reduce: Get total age sum
+local totalAge = userCollection:reduce(function(acc, user)
+    return acc + user.age
+end, 0)
+print("\nTotal age of all users:", totalAge)
+
+-- Check if collection contains a user older than 30
+local hasOlderUser = userCollection:contains(function(user)
+    return user.age > 30
+end)
+print("\nContains user older than 30?", hasOlderUser)
