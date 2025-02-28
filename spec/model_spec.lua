@@ -49,6 +49,37 @@ describe("Model", function()
         assert.are.equal("alice@new.com", updated.email)
     end)
 
+    it("should update a record by modifying a property and calling save", function()
+        local user = User:create({ name = "Alice", email = "alice@example.com" })
+        
+        -- Modify an attribute directly
+        user.email = "updated@example.com"
+        user:save() -- Save the updated value
+
+        local updated = User:find(user.id)
+        assert.is_not_nil(updated)
+        assert.are.equal("updated@example.com", updated.email)
+    end)
+
+    it("should save a new record", function()
+        local user = User:new({ name = "Alice", email = "alice@example.com" })
+        user:save()
+        assert.is_not_nil(user.id)
+
+        local found = User:find(user.id)
+        assert.are.equal("Alice", found.name)
+        assert.are.equal("alice@example.com", found.email)
+    end)
+
+    it("should update an existing record using save", function()
+        local user = User:create({ name = "Alice", email = "alice@example.com" })
+        user.name = "Alice Updated"
+        user:save()
+        
+        local updated = User:find(user.id)
+        assert.are.equal("Alice Updated", updated.name)
+    end)
+
     it("should delete a record", function()
         local user = User:create({ name = "Alice", email = "alice@example.com" })
         local success = user:delete()
