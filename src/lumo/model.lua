@@ -1,5 +1,6 @@
 local QueryBuilder = require("lumo.query_builder")
-local Relationships = require("lumo.relationships") -- Import relationships module
+local Relationships = require("lumo.relationships")
+local Collection = require("lumo.collection")
 
 local Model = {}
 Model.__index = Model
@@ -34,11 +35,12 @@ end
 -- Get all records
 function Model:all()
     local result = self:query():get()
-    local instances = {}
-    for _, row in ipairs(result) do
-        table.insert(instances, self:new(row))
-    end
-    return instances
+    return Collection:new(result) -- Return as Collection
+end
+
+function Model:get()
+    local result = self.query_instance:get()
+    return Collection:new(result) -- Return as Collection
 end
 
 -- Insert a new record
@@ -77,6 +79,23 @@ function Model:delete()
     -- Delete the record
     local success = self:query():where("id", "=", self.id):delete()
     return success
+end
+
+-- Fluent Query Builder Methods
+function Model:where(field, operator, value)
+    return self:query():where(field, operator, value)
+end
+
+function Model:orderBy(field, direction)
+    return self:query():orderBy(field, direction)
+end
+
+function Model:limit(count)
+    return self:query():limit(count)
+end
+
+function Model:first()
+    return self:query():first()
 end
 
 -- **Use Relationships from `relationships.lua`**
