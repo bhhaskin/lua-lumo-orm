@@ -14,7 +14,10 @@ end
 
 -- Constructor (Create a new model instance)
 function Model:new(data)
-    local instance = setmetatable(data or {}, self)
+    local instance = setmetatable({}, self)
+    for key, value in pairs(data or {}) do
+        instance[key] = value
+    end
     return instance
 end
 
@@ -26,7 +29,7 @@ end
 -- Find a record by ID
 function Model:find(id)
     local result = self:query():where("id", "=", id):limit(1):get()
-    if #result > 0 then
+    if result and #result > 0 then
         return self:new(result[1]) -- Ensure it's an instance of Model
     end
     return nil
@@ -35,9 +38,16 @@ end
 -- Save: Insert if new, otherwise update
 function Model:save()
     if self.id then
-        return self:update(self)
+        -- Only update fields that exist in the table
+        local data = {}
+        for key, value in pairs(self) do
+            if type(value) ~= "function" and key ~= "_dirty" and key ~= "_original" then
+                data[key] = value
+            end
+        end
+        return self:update(data)
     else
-        local id = self:query():insert(self)
+        local id = self:query():insert(self:toTable())
         if id then
             self.id = id -- Assign ID to the instance
             return true
@@ -53,7 +63,7 @@ function Model:all()
 end
 
 function Model:get()
-    local result = self.query_instance:get()
+    local result = self:query():get()
     return Collection:new(result) -- Return as Collection
 end
 
@@ -66,39 +76,18 @@ end
 -- Update an existing record
 function Model:update(data)
     if not self.id then error("Cannot update a record without an ID") end
-
     local success = self:query():where("id", "=", self.id):update(data)
-
     if success then
         for key, value in pairs(data) do
             self[key] = value -- Update instance attributes
         end
     end
-
     return success
 end
 
 -- Delete a record
 function Model:delete()
     if not self.id then error("Cannot delete a record without an ID") end
-
-    -- Run cascade delete hooks (if defined in model)
-    if self.__cascadeDelete then
-        for _, relation in ipairs(self.__cascadeDelete) do
-            if type(self[relation]) == "function" then
-                local related_records = self[relation](self) -- Fetch related records
-                if type(related_records) == "table" then
-                    for _, record in ipairs(related_records) do
-                        if record and record.delete then
-                            record:delete() -- Ensure each related record is deleted
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    -- Delete the record
     local success = self:query():where("id", "=", self.id):delete()
     return success
 end
@@ -118,8 +107,8 @@ end
 
 function Model:first()
     local result = self:query():first()
-    if #result > 0 then
-        return self:new(result[1]) -- Ensure instance of Model
+    if result then
+        return self:new(result) -- Ensure instance of Model
     end
     return nil
 end
@@ -140,21 +129,14 @@ end
 
 function Model:upsert(data, uniqueKey)
     uniqueKey = uniqueKey or "id"
-
-    -- Ensure the unique key exists in data
     if not data[uniqueKey] then
         error("Upsert requires a `" .. uniqueKey .. "` field in data.")
     end
-
-    -- Try to find an existing record
     local existing = self:query():where(uniqueKey, "=", data[uniqueKey]):first()
-
     if existing then
-        -- Update existing record
         existing:update(data)
         return existing
     else
-        -- Create new record
         return self:create(data)
     end
 end
@@ -162,23 +144,23 @@ end
 function Model:increment(field, amount)
     amount = amount or 1
     if self.id then
-        self[field] = (self[field] or 0) + amount
-        self:save()
+        local new_value = (self[field] or 0) + amount
+        self:update({ [field] = new_value }) -- Explicit update
     end
 end
 
 function Model:decrement(field, amount)
     amount = amount or 1
     if self.id then
-        self[field] = (self[field] or 0) - amount
-        self:save()
+        local new_value = (self[field] or 0) - amount
+        self:update({ [field] = new_value }) -- Explicit update
     end
 end
 
 function Model:toTable()
     local data = {}
     for key, value in pairs(self) do
-        if key ~= "_dirty" and key ~= "_original" then
+        if type(value) ~= "function" and key ~= "_dirty" and key ~= "_original" then
             data[key] = value
         end
     end
@@ -187,7 +169,6 @@ end
 
 function Model:refresh()
     if not self.id then return nil end
-
     local refreshed = self:query():where("id", "=", self.id):first()
     if refreshed then
         setmetatable(refreshed, getmetatable(self))  -- Ensure it remains a model instance
@@ -195,7 +176,6 @@ function Model:refresh()
             self[key] = value
         end
     end
-
     return self
 end
 
@@ -205,7 +185,6 @@ end
 
 function Model:find_or_create(data, uniqueKey)
     uniqueKey = uniqueKey or "id"
-
     local existing = self:query():where(uniqueKey, "=", data[uniqueKey]):first()
     if existing then
         return existing
@@ -216,29 +195,20 @@ end
 
 function Model:update_or_create(findData, updateData)
     local query = self:query()
-
-    -- Apply all key-value conditions for search
     for key, value in pairs(findData) do
         query:where(key, "=", value)
     end
-
     local existing = query:first()
-
     if existing then
-        -- Ensure it is a proper model instance
         if not getmetatable(existing) then
             existing = self:new(existing)  -- Convert result to an instance
         end
-
-        -- Call update on the instance
         existing:update(updateData)
         return existing
     else
-        -- Merge findData and updateData to create a new record
         local newData = {}
         for k, v in pairs(findData) do newData[k] = v end
         for k, v in pairs(updateData) do newData[k] = v end
-
         return self:create(newData)
     end
 end
