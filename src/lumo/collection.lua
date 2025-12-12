@@ -1,5 +1,18 @@
 local Collection = {}
-Collection.__index = Collection
+
+-- Support # operator for length
+Collection.__len = function(self)
+    return #self.items
+end
+
+-- Support numeric indexing and method access
+Collection.__index = function(self, key)
+    if type(key) == "number" then
+        return self.items[key]
+    else
+        return Collection[key]
+    end
+end
 
 -- Create a new collection
 function Collection:new(items)

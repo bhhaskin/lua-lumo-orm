@@ -34,12 +34,37 @@ end
 local success = found_user:update({ name = "Alice Updated" })
 print("Update Successful:", success)
 
--- Retrieve all users
+-- Retrieve all users (returns a Collection)
 local users = User:all()
-print("All Users:")
-for _, u in ipairs(users) do
+print("Total Users:", #users)
+
+-- Collections support array-like access and iteration
+for i, u in ipairs(users) do
     print(u.id, u.name, u.email)
 end
+
+-- Collection methods for functional programming
+local names = users:map(function(u) return u.name end)
+local emails = users:pluck("email")
+local sorted = users:sortBy("name", true)
+
+print("Names:", table.concat(names:toArray(), ", "))
+print("First user:", users:first().name)
+print("Last user:", users:last().name)
+
+-- Advanced queries with collections
+local admins = User:where("role", "=", "admin")
+    :orWhere("role", "=", "moderator")
+    :get()
+
+local activeUsers = User:whereIn("status", {"active", "premium"}):get()
+
+-- Transactions
+Lumo.db:transaction(function()
+    User:create({ name = "Bob", email = "bob@example.com" })
+    User:create({ name = "Carol", email = "carol@example.com" })
+    -- If any fails, both are rolled back
+end)
 
 -- Delete a user
 local deleted = found_user:delete()
