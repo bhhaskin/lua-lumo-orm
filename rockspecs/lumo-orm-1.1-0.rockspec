@@ -2,6 +2,7 @@ package = "lumo-orm"
 version = "1.1-0"
 source = {
    url = "https://github.com/bhhaskin/lua-lumo-orm/archive/refs/tags/v1.1-0.tar.gz",
+   md5 = "fe5b198f2f8bd57d11ee5ed6abfda065",
    dir = "lua-lumo-orm-1.1-0"
 }
 description = {
