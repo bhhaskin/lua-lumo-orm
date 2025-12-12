@@ -1,9 +1,8 @@
 package = "lumo-orm"
-version = "1.0-0"
+version = "1.1-0"
 source = {
-   url = "https://github.com/bhhaskin/lua-lumo-orm/archive/refs/tags/v1.0-0.tar.gz",
-    md5 = "7986b4f1fb6794a9db7335a78652bb1f",
-   dir = "lua-lumo-orm-1.0-0"
+   url = "https://github.com/bhhaskin/lua-lumo-orm/archive/refs/tags/v1.1-0.tar.gz",
+   dir = "lua-lumo-orm-1.1-0"
 }
 description = {
     summary = "A lightweight Active Record ORM for Lua with SQLite support",
@@ -29,5 +28,6 @@ build = {
         ["lumo.relationships"] = "src/lumo/relationships.lua",
         ["lumo.migrations"] = "src/lumo/migrations.lua",
         ["lumo.collection"] = "src/lumo/collection.lua",
+        ["lumo.seeder"] = "src/lumo/seeder.lua",
     }
 }
