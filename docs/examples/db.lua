@@ -25,5 +25,18 @@ for _, user in ipairs(results) do
     print("User:", user.id, user.name, user.email)
 end
 
+-- Using transactions
+db:transaction(function()
+    db:execute("INSERT INTO users (name, email) VALUES (?, ?);", "Bob", "bob@example.com")
+    db:execute("INSERT INTO users (name, email) VALUES (?, ?);", "Carol", "carol@example.com")
+    -- Both inserts succeed or both fail
+end)
+
+-- Manual transaction control
+db:beginTransaction()
+db:execute("INSERT INTO users (name, email) VALUES (?, ?);", "Dave", "dave@example.com")
+db:commit()
+-- Or db:rollback() to undo
+
 -- Close the database connection
 db:close()

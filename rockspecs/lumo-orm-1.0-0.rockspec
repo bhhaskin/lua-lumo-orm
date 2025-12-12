@@ -29,5 +29,6 @@ build = {
         ["lumo.relationships"] = "src/lumo/relationships.lua",
         ["lumo.migrations"] = "src/lumo/migrations.lua",
         ["lumo.collection"] = "src/lumo/collection.lua",
+        ["lumo.seeder"] = "src/lumo/seeder.lua",
     }
 }

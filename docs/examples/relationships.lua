@@ -55,16 +55,35 @@ local post1 = Post:create({ title = "First Post", user_id = user.id })
 local post2 = Post:create({ title = "Second Post", user_id = user.id })
 print("Inserted Posts:", post1.id, post1.title, "|", post2.id, post2.title)
 
--- Retrieve user's posts
+-- Retrieve user's posts (returns Collection of Post model instances)
 local posts = user:posts()
-print("User's Posts:")
-for _, post in ipairs(posts) do
-    print(post.id, post.title)
+print("User has", #posts, "posts")
+
+-- All posts are Model instances, so you can call methods on them
+for i, post in ipairs(posts) do
+    print("Post:", post.id, post.title)
+    -- Update the post
+    post:update({ title = post.title .. " (Updated)" })
 end
 
--- Retrieve post's user
+-- Collection methods
+local titles = posts:map(function(post) return post.title end)
+print("Titles:", table.concat(titles:toArray(), ", "))
+
+-- Retrieve post's user (returns User model instance)
 local post_user = post1:user()
 print("Post belongs to User:", post_user.id, post_user.name)
+
+-- Cascade delete example
+User.__cascadeDelete = { "posts" }
+
+-- When we delete the user, all their posts are automatically deleted
+local user_to_delete = User:find(user.id)
+user_to_delete:delete() -- This also deletes all posts
+
+-- Verify posts are deleted
+local remaining_posts = Post:all()
+print("Remaining posts after cascade delete:", #remaining_posts)
 
 -- Close the database connection
 db:close()

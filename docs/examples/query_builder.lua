@@ -27,6 +27,33 @@ if user then
     print("User Found:", user.id, user.name, user.email)
 end
 
+-- Query with multiple conditions
+local users = QueryBuilder:new("users")
+    :where("name", "LIKE", "%Alice%")
+    :where("id", ">", 5)
+    :orderBy("name", "ASC")
+    :get()
+
+print("Found users:", #users)
+for i, user in ipairs(users) do
+    print(user.id, user.name, user.email)
+end
+
+-- OR conditions
+local users_or = QueryBuilder:new("users")
+    :where("id", "=", 1)
+    :orWhere("id", "=", 2)
+    :get()
+
+print("Users with OR condition:", #users_or)
+
+-- IN queries
+local specific_users = QueryBuilder:new("users")
+    :whereIn("id", {user_id, 2, 3})
+    :get()
+
+print("Users with IN clause:", #specific_users)
+
 -- Update a user
 local updated = QueryBuilder:new("users"):where("id", "=", user_id):update({ name = "Alice Updated" })
 print("Update Successful:", updated)

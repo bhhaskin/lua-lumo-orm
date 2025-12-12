@@ -24,14 +24,8 @@ describe("Model Relationships", function()
 
         -- Define relationships inside `before_each`
         function User:posts()
-          local results = self:hasMany(Post, "user_id")
-          local instances = {}
-          for _, row in ipairs(results) do
-              table.insert(instances, Post:new(row)) -- Convert table rows into Post model instances
-          end
-          return instances
-      end
-      
+            return self:hasMany(Post, "user_id")
+        end
 
         function Post:user()
             return self:belongsTo(User, "user_id")
